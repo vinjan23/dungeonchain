@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	v4 "github.com/Crypto-Dungeon/dungeonchain/app/upgrades/v4"
+	v5 "github.com/Crypto-Dungeon/dungeonchain/app/upgrades/v5"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -11,7 +12,7 @@ import (
 )
 
 // Upgrades list of chain upgrades
-var Upgrades = []upgrades.Upgrade{}
+var Upgrades = []upgrades.Upgrade{v5.Upgrade}
 var Forks = []upgrades.Fork{v4.Upgrade}
 
 // RegisterUpgradeHandlers registers the chain upgrade handlers

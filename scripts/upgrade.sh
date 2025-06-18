@@ -3,13 +3,13 @@
 # the upgrade is a fork, "true" otherwise
 FORK=${FORK:-"false"}
 
-OLD_VERSION=v1.0.0
+OLD_VERSION=v4.0.0
 UPGRADE_WAIT=${UPGRADE_WAIT:-20}
 HOME=mytestnet
 ROOT=$(pwd)
 DENOM=udgn
 CHAIN_ID=localdungeon
-SOFTWARE_UPGRADE_NAME="v4"
+SOFTWARE_UPGRADE_NAME="v5"
 SLEEP_TIME=2
 BINARY=dungeond
 export KEY="acc0"
@@ -141,7 +141,7 @@ EOF
 
     # determine block_height to halt
     while true; do
-        BLOCK_HEIGHT=$(./_build/old/$BINARY status | jq '.SyncInfo.latest_block_height' -r)
+        BLOCK_HEIGHT=$(./_build/old/$BINARY status | jq '.sync_info.latest_block_height' -r)
         if [ $BLOCK_HEIGHT = "$UPGRADE_HEIGHT" ]; then
             # assuming running only 1 dungeond
             echo "BLOCK HEIGHT = $UPGRADE_HEIGHT REACHED, KILLING OLD ONE"
@@ -158,7 +158,7 @@ EOF
 # if FORK = true
 if [[ "$FORK" == "true" ]]; then
     run_fork
-    unset PICA_HALT_HEIGHT
+    unset UPGRADE_HEIGHT
 else
     run_upgrade
 fi
@@ -167,27 +167,4 @@ sleep 1
 
 # run new node
 echo -e "\n\n=> =>continue running nodes after upgrade"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    CONTINUE="true" screen -L -dmS dungeond bash scripts/localnode-upgrade.sh _build/new/$BINARY $DENOM
-else
-    CONTINUE="true" screen -L -dmS dungeond bash scripts/localnode-upgrade.sh _build/new/$BINARY $DENOM
-fi
-
-sleep 5
-
-
-# execute additional after scripts
-if [ ! -z "$ADDITIONAL_AFTER_SCRIPTS" ]; then
-    # slice ADDITIONAL_SCRIPTS by ,
-    SCRIPTS=($(echo "$ADDITIONAL_AFTER_SCRIPTS" | tr ',' ' '))
-    for SCRIPT in "${SCRIPTS[@]}"; do
-         # check if SCRIPT is a file
-        if [ -f "$SCRIPT" ]; then
-            echo "executing additional after scripts from $SCRIPT"
-            source $SCRIPT _build/new/$BINARY
-            sleep 5
-        else
-            echo "$SCRIPT is not a file"
-        fi
-    done
-fi
+./_build/new/dungeond start --home mytestnet
